@@ -1,0 +1,34 @@
+{
+    "incon" : {
+        "t_init" : 1418.092314004898,
+        "t_fin": 82,
+        "z_off": 0.1
+    },
+    "soil" : {
+        "spacing": 0.06,
+        "size": 6,
+        "bulk_density": [ 1400,2000 ],
+        "cohesion": [1e3,1e5],
+        "friction": [0.4,1.0],
+        "youngs_modulus": [1e5, 5e8],
+        "poisson_ratio": [0.3,0.5]
+    },
+    "integrator" : {
+        "step_size": 3e-4,
+        "integrator": "DEFAULT"
+    },
+    "optimizer" : {
+        "n_trials": 50,
+        "method": "combined",
+        "pruner_warmup": 15
+    },
+    "misc": {
+        "gpu_check": true,
+        "sim_input_dir": "../resources/downlink/open_loop.csv",
+        "trial_output_dir": "/scratch/10806/bwitt",
+        "storage": {
+            "type": "JS",
+            "dir": "/scratch/10806/bwitt/optuna_journal_storage.log"
+        }
+    }
+}

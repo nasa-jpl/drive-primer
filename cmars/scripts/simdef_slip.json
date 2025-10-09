@@ -1,0 +1,26 @@
+{
+    "incon" : {
+        "t_init" : 0.0,
+        "t_fin": 80,
+        "z_off": 0.05
+    },
+    "soil" : {
+        "bulk_density" : 1600,
+        "cohesion" : 5070,
+        "friction" : 0.8,
+        "youngs_modulus" : 5e6,
+        "poisson_ratio" : 0.32,
+        "spacing" : 0.05,
+        "size": 10
+    },
+    "integrator" : {
+        "step_size_mbd": 5e-4,
+        "step_size_cfd": 5e-4,
+        "integrator": "DEFAULT"
+    },
+    "downlink" : {
+    },
+    "results": {
+       "trial_output_file": "/home/bwitt/Desktop/drive-primer/cmars/build/demos/test.csv"
+    }
+}

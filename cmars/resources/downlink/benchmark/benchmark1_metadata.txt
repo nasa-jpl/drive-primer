@@ -1,0 +1,10 @@
+Cohesion 66624
+Bulk Density 1686
+Friction 0.57
+YM 72552554
+poisson_ratio 0.33
+
+Generated with:
+CFD Step Size 8e-4
+MBD Step Size 5e-4
+Spacing 0.06

@@ -1,0 +1,64 @@
+{
+    "trials": [
+        {
+            "sim_input_dirs": "/home/bwitt/Desktop/test_ws/downlink/open_loop.csv",
+            "control_input_dirs" : "/home/bwitt/Desktop/test_ws/downlink/open_loop.csv",
+            "incons": {
+                "t_init": 781813454.000174,
+                "t_fin": 80,
+                "z_off": 0.15
+            }
+        },
+        {
+            "sim_input_dirs": "/home/bwitt/Desktop/test_ws/downlink/open_loop.csv",
+            "control_input_dirs" : "/home/bwitt/Desktop/test_ws/downlink/open_loop.csv",
+            "incons": {
+                "t_init": 781814942.000278,
+                "t_fin": 150,
+                "z_off": 0.15
+            }
+        }
+    ],
+    "incon" : {
+    },
+    "soil" : {
+        "spacing": 0.06,
+        "size": 8,
+        "bulk_density_range": [ 1.2,1.9 ],
+        "cohesion_range": [0.1,100],
+        "friction_range": [0.3,1.0],
+        "youngs_modulus_range": [0.1, 300],
+        "poisson_ratio_range": [0.3,0.4]
+    },
+    "integrator" : {
+        "step_size_mbd": 5e-4,
+        "step_size_cfd": 8e-4,
+        "integrator": "DEFAULT"
+    },
+    "optimizer" : {
+        "n_trials": 50,
+        "method": "combined",
+        "pruner_warmup": 15
+    },
+    "downlink" : {
+        "sim_input_dir": "",
+        "control_input_dir": "",
+        "ht" : [
+            "/home/bwitt/Desktop/test_ws/downlink/01294/NLM_1294_0781815035M991RAS_N0603619VCE_15950_0A02LLJ01.ht"
+        ],
+        "mod" : [
+            "/home/bwitt/Desktop/test_ws/downlink/01294/N_LT_1294_XYM_SM2_RAS060_3632_AUTOGENJ06.mod",
+            "/home/bwitt/Desktop/test_ws/downlink/01293/N_LT_1293_XYM_SM2_RAS060_3478_AUTOGENJ06.mod"
+        ]
+    },
+    "results" : {
+        "trial_output_dir": "/home/bwitt/Desktop/test_ws/logs",
+        "storage": {
+            "type": "SQLITE",
+            "dir": "sqlite:///optuna_study.db"
+        }
+    },
+    "misc": {
+        "gpu_check": false
+    }
+}

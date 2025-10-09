@@ -1,0 +1,57 @@
+{
+    "trials": [
+        {
+            "sim_input_dirs": "/home/bwitt/Desktop/test_ws/01578/products/kinematic_traj.csv",
+            "control_input_dirs" : "/home/bwitt/Desktop/test_ws/01578/products/kinematic_traj.csv",
+            "incons": {
+                "t_init": 807025235.1,
+                "t_fin": 125,
+                "z_off": 0.0
+            }
+        }
+    ],
+    "incon" : {
+    },
+    "soil" : {
+        "spacing": 0.06,
+        "size": 8,
+        "bulk_density_range": [ 1.2,1.9 ],
+        "cohesion_range": [0.5,10],
+        "friction_range": [0.3,1.0],
+        "youngs_modulus_range": [0.1, 300],
+        "poisson_ratio_range": [0.3,0.4]
+    },
+    "integrator" : {
+        "step_size_mbd": 5e-4,
+        "step_size_cfd": 8e-4,
+        "integrator": "DEFAULT"
+    },
+    "optimizer" : {
+        "n_trials": 50,
+        "method": "combined",
+        "pruner_warmup": 15
+    },
+    "downlink" : {
+        "sim_input_dir": "",
+        "control_input_dir": "",
+        "ht" : [
+            "/home/bwitt/Desktop/test_ws/01578/downlink/NLM_1577_0806946314M902RAS_N0774577VCE_15940_0A02LLJ01.ht"
+        ],
+        "mod" : [
+            "/home/bwitt/Desktop/test_ws/01578/downlink/F_LT_1577_XYM_SM2_RAS077_4612_AUTOGENJ01.mod",
+            "/home/bwitt/Desktop/test_ws/01578/downlink/N_LT_1577_XYM_SM2_RAS077_4612_AUTOGENJ08.mod",
+            "/home/bwitt/Desktop/test_ws/01578/downlink/O_AT_1577_ORR_S10TRAS077_4612_NES2222J01.mod",
+            "/home/bwitt/Desktop/test_ws/01578/downlink/R_LT_1577_XYM_SM2_RAS077_4612_AUTOGENJ01.mod"
+        ]
+    },
+    "results" : {
+        "trial_output_dir": "/home/bwitt/Desktop/test_ws/01578/logs",
+        "storage": {
+            "type": "SQLITE",
+            "dir": "sqlite:///optuna_study.db"
+        }
+    },
+    "misc": {
+        "gpu_check": false
+    }
+}

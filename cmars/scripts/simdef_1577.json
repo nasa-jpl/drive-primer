@@ -1,0 +1,37 @@
+{
+    "incon" : {
+        "t_init" : 807025233.0,
+        "t_fin": 80,
+        "z_off": 0.05
+    },
+    "soil" : {
+        "bulk_density" : 1246,
+        "cohesion" : 5070,
+        "friction" : 0.8,
+        "youngs_modulus" : 5e6,
+        "poisson_ratio" : 0.32,
+        "spacing" : 0.05,
+        "size": 10
+    },
+    "integrator" : {
+        "step_size_mbd": 5e-4,
+        "step_size_cfd": 5e-4,
+        "integrator": "DEFAULT"
+    },
+    "downlink" : {
+        "sim_input_dir": "/home/bwitt/Desktop/test_ws/01578/products/kinematic_traj.csv",
+        "control_input_dir": "/home/bwitt/Desktop/test_ws/01578/products/kinematic_traj.csv",
+        "ht" : [
+            "/home/bwitt/Desktop/test_ws/01578/downlink/NLM_1577_0806946314M902RAS_N0774577VCE_15940_0A02LLJ01.ht"
+        ],
+        "mod" : [
+            "/home/bwitt/Desktop/test_ws/01578/downlink/F_LT_1577_XYM_SM2_RAS077_4612_AUTOGENJ01.mod",
+            "/home/bwitt/Desktop/test_ws/01578/downlink/N_LT_1577_XYM_SM2_RAS077_4612_AUTOGENJ08.mod",
+            "/home/bwitt/Desktop/test_ws/01578/downlink/O_AT_1577_ORR_S10TRAS077_4612_NES2222J01.mod",
+            "/home/bwitt/Desktop/test_ws/01578/downlink/R_LT_1577_XYM_SM2_RAS077_4612_AUTOGENJ01.mod"
+        ]    
+    },
+    "results": {
+       "trial_output_file": "/home/bwitt/Desktop/drive-primer/cmars/build/demos/test.csv"
+    }
+}

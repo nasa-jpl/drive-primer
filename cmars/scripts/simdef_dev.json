@@ -1,0 +1,34 @@
+{
+    "incon" : {
+        "t_init" :781813454.000174,
+        "t_fin": 80,
+        "z_off": 0.15
+    },
+    "soil" : {
+        "bulk_density" : 1500,
+        "cohesion" : 1300,
+        "friction" : 0.75,
+        "youngs_modulus" : 5e7,
+        "poisson_ratio" : 0.3,
+        "spacing" : 0.06,
+        "size": 10
+    },
+    "integrator" : {
+        "step_size_mbd": 5e-4,
+        "step_size_cfd": 8e-4,
+        "integrator": "DEFAULT"
+    },
+    "downlink" : {
+        "sim_input_dir": "../../resources/downlink/open_loop.csv",
+        "ht" : [
+            "../../resources/downlink/01294/NLM_1294_0781815035M991RAS_N0603619VCE_15950_0A02LLJ01.ht"
+        ],
+        "mod" : [
+            "../../resources/downlink/01294/N_LT_1294_XYM_SM2_RAS060_3632_AUTOGENJ06.mod",
+            "../../resources/downlink/01293/N_LT_1293_XYM_SM2_RAS060_3478_AUTOGENJ06.mod"
+        ]
+    },
+    "results": {
+       "trial_output_file": "/home/bwitt/Desktop/drive-primer/cmars/build/demos/test.csv"
+    }
+}

@@ -1,0 +1,3 @@
+[submodule "image-data"]
+	path = image-data
+	url = https://github.com/nasa-jpl/image-data
