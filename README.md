@@ -40,12 +40,6 @@ Requires CUDA 12.2+, GCC 11.4+, MPI
 
 When building cmars note the build/cmake directory for the Chrono_DIR build flag, also note the libimage_data.a and include dir when building image-data. You will also be required to point to the various VSG and URDF dependencies
 
-If installed in the default ~/Packages directory: 
-
-<img width="586" alt="image" src="https://github.jpl.nasa.gov/rsvp/drive-primer/assets/12806/2cb32edc-4c1b-4765-9971-eece45af5acf">
-<img width="595" alt="image" src="https://github.jpl.nasa.gov/rsvp/drive-primer/assets/12806/c45b95b4-2921-4efc-b001-fe1ba89678a8">
-
-
 <b>Note for any future work (as of 8/26/25)</b>: PyChrono has been worked on significantly in the past 2 months, so much so that they are beginning to rollout CRM, Parsers, etc support. If switched to PyChrono, it would not require this kind of build process (at the down sides of reduced customizability of the core simulator, should we need it). I also included a docker/* folder and modified the docker-compose template used for Chrono projects. I have not tested if it works (my computer doesn't have enough /var/tmp space to build the images), but you are welcome to take a crack at it. I modified it to point to the mirror hosted on RSVP, make sure your ssh-agent keys are in order.
 
 # Brief Overview
@@ -53,7 +47,7 @@ If installed in the default ~/Packages directory:
 - Chrono::Mars simulator
 - Collection of classes and demos to simulate Perseverance in the Project Chrono multi-physics simulator
 - To run a single instance of the primary demo, use `demo_cmars "$(cat <simdef JSON>)"` (assuming binary is in your PATH). Note simdef JSON's can use both relative and absolute paths to point to vicar heightmaps, and if not accessible can cause errors
-- For an example simdef, see [here](https://github.jpl.nasa.gov/raw/rsvp/drive-primer/main/param-identification/downlink/benchmark/benchmark2_simdef.json?token=GHSAT0AAAAAAAAASUMUUSUXJVJZGAOEBHKE2FXML2A)
+- For an example simdef, see [here](param-identification/downlink/benchmark/benchmark2_simdef.json)
 
 ## dp-cli
 - Master CLI command `drive-primer`, essentially aliases
@@ -71,6 +65,6 @@ If installed in the default ~/Packages directory:
 - Install as pip package, can be run either by `dp-opt <bayopt JSON>` or `drive-primer optimize <bayopt JSON>`
 
 ## slip-table
-- Use CMars slipslope demo to generate synthetic slip curves given a simdef JSON (see [simdef_slip.json](https://github.jpl.nasa.gov/rsvp/drive-primer/blob/main/slip-table/src/tests/simdef_slip.json))
+- Use CMars slipslope demo to generate synthetic slip curves given a simdef JSON (see [simdef_slip.json](slip-table/src/tests/simdef_slip.json))
 - Install as pipe package, run with `dp-table` or `drive-primer table -f <JSON>` to run slip-slope simulations and generate slip_*.csv files, use `drive-primer table-gp` in the directory of the slip files to get the Gaussian process curves. Telemetry can be added by modifying the Python file (oof)
   
