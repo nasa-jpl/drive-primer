@@ -1,0 +1,541 @@
+diff --git a/contrib/build-scripts/linux/buildURDF.sh b/contrib/build-scripts/linux/buildURDF.sh
+old mode 100644
+new mode 100755
+index 6681ca25a1..975a8fc5c9
+--- a/contrib/build-scripts/linux/buildURDF.sh
++++ b/contrib/build-scripts/linux/buildURDF.sh
+@@ -15,34 +15,29 @@
+ DOWNLOAD=ON
+ 
+ URDF_INSTALL_DIR="$HOME/Packages/urdf"
++URDF_PREFIX_DIR="$HOME/Sources"   
+ 
+ BUILDDEBUG=OFF
+ BUILDSYSTEM="Ninja Multi-Config"
+ 
+-if [ ${DOWNLOAD} = OFF ]
+-then
+-    TINYXML2_SOURCE_DIR="$HOME/Sources/tinyxml2"
+-    CONSOLE_BRIDGE_SOURCE_DIR="$HOME/Sources/console_bridge"
+-    URDFDOM_HEADERS_SOURCE_DIR="$HOME/Sources/urdfdom_headers"
+-    URDFDOM_SOURCE_DIR="$HOME/Sources/urdfdom"
+-fi
+-
+ # ------------------------------------------------------------------------
+ # Allow overriding installation directory through command line argument
+-
+-if [ $# -eq 1 ]
+-then
++if [ $# -eq 1 ]; then
+     URDF_INSTALL_DIR=$1
+ fi
+ 
+ # ------------------------------------------------------------------------
+-
+-if [ ${DOWNLOAD} = ON ]
+-then
++# Resolve source directories
++if [ ${DOWNLOAD} = OFF ]; then
++    echo "Using local sources from prefix: ${URDF_PREFIX_DIR}"
++    TINYXML2_SOURCE_DIR="${URDF_PREFIX_DIR}/tinyxml2"
++    CONSOLE_BRIDGE_SOURCE_DIR="${URDF_PREFIX_DIR}/console_bridge"
++    URDFDOM_HEADERS_SOURCE_DIR="${URDF_PREFIX_DIR}/urdfdom_headers"
++    URDFDOM_SOURCE_DIR="${URDF_PREFIX_DIR}/urdfdom"
++else
+     echo "Download sources from GitHub"
+-
+     rm -rf download_urdf
+-    mkdir download_urdf
++    mkdir -p download_urdf
+ 
+     echo "  ... tinyxml2"
+     git clone "https://github.com/leethomason/tinyxml2.git" "download_urdf/tinyxml2"
+@@ -59,8 +54,6 @@ then
+     echo "  ... urdfdom"
+     git clone "https://github.com/ros/urdfdom.git" "download_urdf/urdfdom"
+     URDFDOM_SOURCE_DIR="download_urdf/urdfdom"
+-else
+-    echo "Using provided source directories"
+ fi
+ 
+ echo -e "\nSources in:"
+@@ -70,43 +63,53 @@ echo "  "  ${URDFDOM_HEADERS_SOURCE_DIR}
+ echo "  "  ${URDFDOM_SOURCE_DIR}
+ 
+ # ------------------------------------------------------------------------
+-
+-rm -rf ${URDF_INSTALL_DIR}
+-mkdir ${URDF_INSTALL_DIR}
++# Fresh install prefix
++rm -rf "${URDF_INSTALL_DIR}"
++mkdir -p "${URDF_INSTALL_DIR}"
++
++# Helper to detect whether a package installed under lib/ or lib64/
++detect_libdir_for_pkg () {
++    local pkg="$1"
++    if [ -d "${URDF_INSTALL_DIR}/lib64/${pkg}" ] || [ -d "${URDF_INSTALL_DIR}/lib64/${pkg}/cmake" ]; then
++        echo "lib64"
++    else
++        echo "lib"
++    fi
++}
+ 
+ # --- tinyxml2 -------------------------------------------------------------
+ #
+-# Note that tinixml2 cannot be built with "Ninja Multi-Config".
+-# Only configure and build a Release tinixml2 library.
+-# Pass "-fPIC" to allow linking in a shared library.
++# NOTE:
++# - tinyxml2 is built with "Ninja" (single-config), Release only.
++# - We set its CMake package location explicitly to "${URDF_INSTALL_DIR}/CMake".
++# - Pass "-fPIC" so it can be linked into shared libs.
+ #
+ 
+ echo -e "\n------------------------ Configure tinyxml2\n"
+ rm -rf build_tinyxml2
+-cmake -E env CXXFLAGS="-fPIC" cmake -G "Ninja" -B build_tinyxml2 -S ${TINYXML2_SOURCE_DIR} \
++cmake -E env CXXFLAGS="-fPIC" cmake -G "Ninja" -B build_tinyxml2 -S "${TINYXML2_SOURCE_DIR}" \
+       -DCMAKE_BUILD_TYPE="Release" \
+       -Dtinyxml2_INSTALL_CMAKEDIR:PATH="CMake"
+ 
+ echo -e "\n------------------------ Build and install tinyxml2\n"
+ cmake --build build_tinyxml2
+-cmake --install build_tinyxml2 --prefix ${URDF_INSTALL_DIR}
++cmake --install build_tinyxml2 --prefix "${URDF_INSTALL_DIR}"
+ 
+ # --- console_bridge ----------------------------------------------------------------
+ 
+ echo -e "\n------------------------ Configure console_bridge\n"
+ rm -rf build_console_bridge
+-cmake -G "${BUILDSYSTEM}" -B build_console_bridge -S ${CONSOLE_BRIDGE_SOURCE_DIR}  \
++cmake -G "${BUILDSYSTEM}" -B build_console_bridge -S "${CONSOLE_BRIDGE_SOURCE_DIR}" \
+       -DCMAKE_BUILD_TYPE="Release" \
+       -DCMAKE_DEBUG_POSTFIX=_d \
+       -DCMAKE_RELWITHDEBINFO_POSTFIX=_rd
+ 
+ echo -e "\n------------------------ Build and install console_bridge\n"
+ cmake --build build_console_bridge --config Release
+-cmake --install build_console_bridge --config Release --prefix ${URDF_INSTALL_DIR}
+-if [ ${BUILDDEBUG} = ON ]
+-then
++cmake --install build_console_bridge --config Release --prefix "${URDF_INSTALL_DIR}"
++if [ ${BUILDDEBUG} = ON ]; then
+     cmake --build build_console_bridge --config Debug
+-    cmake --install build_console_bridge --config Debug --prefix ${URDF_INSTALL_DIR}
++    cmake --install build_console_bridge --config Debug --prefix "${URDF_INSTALL_DIR}"
+ else
+     echo "No Debug build of console_bridge"
+ fi
+@@ -115,39 +118,41 @@ fi
+ 
+ echo -e "\n------------------------ Configure urdfdom_headers\n"
+ rm -rf build_urdfdom_headers
+-cmake  -G "${BUILDSYSTEM}" -B build_urdfdom_headers -S ${URDFDOM_HEADERS_SOURCE_DIR}  \
++cmake -G "${BUILDSYSTEM}" -B build_urdfdom_headers -S "${URDFDOM_HEADERS_SOURCE_DIR}" \
+       -DCMAKE_DEBUG_POSTFIX=_d \
+       -DCMAKE_RELWITHDEBINFO_POSTFIX=_rd
+ 
+ echo -e "\n------------------------ Build and install urdfdom_headers\n"
+ cmake --build build_urdfdom_headers --config Release
+-cmake --install build_urdfdom_headers --config Release --prefix ${URDF_INSTALL_DIR}
+-if [ ${BUILDDEBUG} = ON ]
+-then
++cmake --install build_urdfdom_headers --config Release --prefix "${URDF_INSTALL_DIR}"
++if [ ${BUILDDEBUG} = ON ]; then
+     cmake --build build_urdfdom_headers --config Debug
+-    cmake --install build_urdfdom_headers --config Debug --prefix ${URDF_INSTALL_DIR}
++    cmake --install build_urdfdom_headers --config Debug --prefix "${URDF_INSTALL_DIR}"
+ else
+     echo "No Debug build of urdfdom_headers"
+ fi
+ 
+ # --- urdfdom -----------------------------------------------------------
++# Detect lib vs lib64 for the packages that urdfdom needs
++CB_LIBDIR="$(detect_libdir_for_pkg console_bridge)"
++UDH_LIBDIR="$(detect_libdir_for_pkg urdfdom_headers)"
+ 
+ echo -e "\n------------------------ Configure urdfdom\n"
+ rm -rf build_urdfdom
+-cmake -G "${BUILDSYSTEM}" -B build_urdfdom -S ${URDFDOM_SOURCE_DIR} \
++cmake -G "${BUILDSYSTEM}" -B build_urdfdom -S "${URDFDOM_SOURCE_DIR}" \
+       -DCMAKE_DEBUG_POSTFIX=_d \
+       -DCMAKE_RELWITHDEBINFO_POSTFIX=_rd \
+-      -Dconsole_bridge_DIR:PATH=${URDF_INSTALL_DIR}/lib/console_bridge/cmake \
+-      -Durdfdom_headers_DIR:PATH=${URDF_INSTALL_DIR}/lib/urdfdom_headers/cmake \
+-      -DTINYXML2_INCLUDE_DIR:PATH=${URDF_INSTALL_DIR}/include \
+-      -DTinyXML2_DIR:PATH=${URDF_INSTALL_DIR}/CMake 
++      -Dconsole_bridge_DIR:PATH="${URDF_INSTALL_DIR}/${CB_LIBDIR}/console_bridge/cmake" \
++      -Durdfdom_headers_DIR:PATH="${URDF_INSTALL_DIR}/${UDH_LIBDIR}/urdfdom_headers/cmake" \
++      -DTINYXML2_INCLUDE_DIR:PATH="${URDF_INSTALL_DIR}/include" \
++      -DTinyXML2_DIR:PATH="${URDF_INSTALL_DIR}/CMake"
++
+ echo -e "\n------------------------ Build and install urdfdom\n"
+ cmake --build build_urdfdom --config Release
+-cmake --install build_urdfdom --config Release --prefix ${URDF_INSTALL_DIR}
+-if [ ${BUILDDEBUG} = ON ]
+-then
++cmake --install build_urdfdom --config Release --prefix "${URDF_INSTALL_DIR}"
++if [ ${BUILDDEBUG} = ON ]; then
+     cmake --build build_urdfdom --config Debug
+-    cmake --install build_urdfdom --config Debug --prefix ${URDF_INSTALL_DIR}
++    cmake --install build_urdfdom --config Debug --prefix "${URDF_INSTALL_DIR}"
+ else
+     echo "No Debug build of urdfdom"
+ fi
+diff --git a/contrib/build-scripts/linux/buildVSG.sh b/contrib/build-scripts/linux/buildVSG.sh
+old mode 100644
+new mode 100755
+index 2e2dcfa9ba..c56f7c4c72
+--- a/contrib/build-scripts/linux/buildVSG.sh
++++ b/contrib/build-scripts/linux/buildVSG.sh
+@@ -8,93 +8,87 @@
+ # - Specify the install directory.
+ # - Decide whether to build shared or static libraries and whether to also build debug libraries.
+ # - Run the script (sh ./buildVSG.sh).
+-# - The install directory will contain (under subdirectories of VSG_INSTALL_DIR/lib/shared) all VSG CMake
+-#   project configuration scripts required to configure Chrono with the Chorno::VSG module enabled.
+-#
+-# Notes:
+-# - The script accepts 1 optional argument to override the install directory.
+-# - This script uses the following versions of the various codes from their respective repositories, with the
+-#   only exception being vsgImGui which pulls the latest version.
+-#      VulkanSceneGraph (github.com/vsg-dev/VulkanSceneGraph.git): Tag v1.1.4
+-#      vsgXchange (github.com/vsg-dev/vsgXchange.git):             Tag v1.1.2
+-#      vsgImGui (github.com/vsg-dev/vsgImGui.git):                 Tag v0.5.0
+-#      vsgExamples (github.com/vsg-dev/vsgExamples.git):           Tag v1.1.4
+-#      assimp (github.com/assimp/assimp):                          Tag v5.3.1
+-# - We suggest using Ninja (ninja-build.org/) and the "Ninja Multi-Config" CMake generator.
+-#   (otherwise, you will need to explicitly set the CMAKE_BUILD_TYPE variable)
+ # -------------------------------------------------------------------------------------------------------
+ 
+ DOWNLOAD=ON
+-
+ VSG_INSTALL_DIR="$HOME/Packages/vsg"
++VSG_SRC_PREFIX_DIR="$HOME/Sources"
+ 
+ BUILDSHARED=ON
+ BUILDDEBUG=OFF
+ BUILDSYSTEM="Ninja Multi-Config"
+ 
+-if [ ${DOWNLOAD} = OFF ]
+-then    
+-    VSG_SOURCE_DIR="$HOME/Sources/VulkanSceneGraph"
+-    VSGXCHANGE_SOURCE_DIR="$HOME/Sources/vsgXchange"
+-    VSGIMGUI_SOURCE_DIR="$HOME/Sources/vsgImGui"
+-    VSGEXAMPLES_SOURCE_DIR="$HOME/Sources/vsgExamples"
+-    ASSIMP_SOURCE_DIR="$HOME/Sources/assimp"
+-fi
+-
+ # ------------------------------------------------------------------------
+ # Allow overriding installation directory through command line argument
+-
+ if [ $# -eq 1 ]
+ then
+     VSG_INSTALL_DIR=$1
+ fi
+ 
+ # ------------------------------------------------------------------------
+-
+-if [ ${DOWNLOAD} = ON ]
+-then
++# Setup source directories
++if [ ${DOWNLOAD} = OFF ]; then
++    echo "Using local sources from prefix: ${VSG_SRC_PREFIX_DIR}"
++    VSG_SOURCE_DIR="${VSG_SRC_PREFIX_DIR}/VulkanSceneGraph"
++    VSGXCHANGE_SOURCE_DIR="${VSG_SRC_PREFIX_DIR}/vsgXchange"
++    VSGIMGUI_SOURCE_DIR="${VSG_SRC_PREFIX_DIR}/vsgImGui"
++    VSGEXAMPLES_SOURCE_DIR="${VSG_SRC_PREFIX_DIR}/vsgExamples"
++    ASSIMP_SOURCE_DIR="${VSG_SRC_PREFIX_DIR}/assimp"
++else
+     echo "Download sources from GitHub"
+ 
+     rm -rf download_vsg
+     mkdir download_vsg
+ 
+     echo "  ... VulkanSceneGraph"
+-    git clone -c advice.detachedHead=false --depth 1 --branch v1.1.4 "https://github.com/vsg-dev/VulkanSceneGraph" "download_vsg/vsg"
++    git clone -c advice.detachedHead=false --depth 1 --branch v1.1.4 \
++        "https://github.com/vsg-dev/VulkanSceneGraph" "download_vsg/vsg"
+     VSG_SOURCE_DIR="download_vsg/vsg"
+ 
+     echo "  ... vsgXchange"    
+-    git clone -c advice.detachedHead=false --depth 1 --branch v1.1.2 "https://github.com/vsg-dev/vsgXchange" "download_vsg/vsgXchange"
++    git clone -c advice.detachedHead=false --depth 1 --branch v1.1.2 \
++        "https://github.com/vsg-dev/vsgXchange" "download_vsg/vsgXchange"
+     VSGXCHANGE_SOURCE_DIR="download_vsg/vsgXchange"
+ 
+     echo "  ... vsgImGui"
+-    git clone -c advice.detachedHead=false --depth 1 --branch v0.5.0 "https://github.com/vsg-dev/vsgImGui" "download_vsg/vsgImGui"
++    git clone -c advice.detachedHead=false --depth 1 --branch v0.5.0 \
++        "https://github.com/vsg-dev/vsgImGui" "download_vsg/vsgImGui"
+     VSGIMGUI_SOURCE_DIR="download_vsg/vsgImGui"
+     
+     echo "  ... vsgExamples"
+-    git clone -c advice.detachedHead=false --depth 1 --branch v1.1.4 "https://github.com/vsg-dev/vsgExamples" "download_vsg/vsgExamples"
++    git clone -c advice.detachedHead=false --depth 1 --branch v1.1.4 \
++        "https://github.com/vsg-dev/vsgExamples" "download_vsg/vsgExamples"
+     VSGEXAMPLES_SOURCE_DIR="download_vsg/vsgExamples"
+ 
+     echo "  ... assimp"
+-    git clone -c advice.detachedHead=false --depth 1 --branch v5.3.1 "https://github.com/assimp/assimp" "download_vsg/assimp"
++    git clone -c advice.detachedHead=false --depth 1 --branch v5.3.1 \
++        "https://github.com/assimp/assimp" "download_vsg/assimp"
+     ASSIMP_SOURCE_DIR="download_vsg/assimp"
+-else
+-    echo "Using provided source directories"
+ fi
+ 
++# ------------------------------------------------------------------------
++# Show resolved sources
+ echo -e "\nSources in:"
+-echo "  "  ${VSG_SOURCE_DIR}
+-echo "  "  ${VSGXCHANGE_SOURCE_DIR}
+-echo "  "  ${VSGIMGUI_SOURCE_DIR}
+-echo "  "  ${VSGEXAMPLES_SOURCE_DIR}
+-echo "  "  ${ASSIMP_SOURCE_DIR}
++echo "  " ${VSG_SOURCE_DIR}
++echo "  " ${VSGXCHANGE_SOURCE_DIR}
++echo "  " ${VSGIMGUI_SOURCE_DIR}
++echo "  " ${VSGEXAMPLES_SOURCE_DIR}
++echo "  " ${ASSIMP_SOURCE_DIR}
+ 
+ # ------------------------------------------------------------------------
++# Handle lib vs lib64 automatically
++if [ -d "${VSG_INSTALL_DIR}/lib64" ]; then
++    LIBDIR="lib64"
++else
++    LIBDIR="lib"
++fi
+ 
++# ------------------------------------------------------------------------
++# Clean install directory
+ rm -rf ${VSG_INSTALL_DIR}
+-mkdir ${VSG_INSTALL_DIR}
++mkdir -p ${VSG_INSTALL_DIR}
+ 
+ # --- assimp -------------------------------------------------------------
+-
+ echo -e "\n------------------------ Configure assimp\n"
+ rm -rf build_assimp
+ cmake -G "${BUILDSYSTEM}" -B build_assimp -S ${ASSIMP_SOURCE_DIR} \
+@@ -109,8 +103,7 @@ cmake -G "${BUILDSYSTEM}" -B build_assimp -S ${ASSIMP_SOURCE_DIR} \
+ echo -e "\n------------------------ Build and install assimp\n"
+ cmake --build build_assimp --config Release
+ cmake --install build_assimp --config Release --prefix ${VSG_INSTALL_DIR}
+-if [ ${BUILDDEBUG} = ON ]
+-then
++if [ ${BUILDDEBUG} = ON ]; then
+     cmake --build build_assimp --config Debug
+     cmake --install build_assimp --config Debug --prefix ${VSG_INSTALL_DIR}
+ else
+@@ -118,10 +111,9 @@ else
+ fi
+ 
+ # --- vsg ----------------------------------------------------------------
+-
+ echo -e "\n------------------------ Configure vsg\n"
+ rm -rf build_vsg
+-cmake  -G "${BUILDSYSTEM}" -B build_vsg -S ${VSG_SOURCE_DIR}  \
++cmake -G "${BUILDSYSTEM}" -B build_vsg -S ${VSG_SOURCE_DIR} \
+       -DBUILD_SHARED_LIBS:BOOL=${BUILDSHARED} \
+       -DCMAKE_DEBUG_POSTFIX=_d \
+       -DCMAKE_RELWITHDEBINFO_POSTFIX=_rd    
+@@ -129,8 +121,7 @@ cmake  -G "${BUILDSYSTEM}" -B build_vsg -S ${VSG_SOURCE_DIR}  \
+ echo -e "\n------------------------ Build and install vsg\n"
+ cmake --build build_vsg --config Release
+ cmake --install build_vsg --config Release --prefix ${VSG_INSTALL_DIR}
+-if [ ${BUILDDEBUG} = ON ]
+-then
++if [ ${BUILDDEBUG} = ON ]; then
+     cmake --build build_vsg --config Debug
+     cmake --install build_vsg --config Debug --prefix ${VSG_INSTALL_DIR}
+ else
+@@ -138,21 +129,19 @@ else
+ fi
+ 
+ # --- vsgXchange ---------------------------------------------------------
+-
+ echo -e "\n------------------------ Configure vsgXchange\n"
+ rm -rf build_vsgXchange
+-cmake  -G "${BUILDSYSTEM}" -B build_vsgXchange -S ${VSGXCHANGE_SOURCE_DIR}  \
++cmake -G "${BUILDSYSTEM}" -B build_vsgXchange -S ${VSGXCHANGE_SOURCE_DIR} \
+       -DBUILD_SHARED_LIBS:BOOL=${BUILDSHARED} \
+       -DCMAKE_DEBUG_POSTFIX=_d \
+       -DCMAKE_RELWITHDEBINFO_POSTFIX=_rd \
+-      -Dvsg_DIR:PATH=${VSG_INSTALL_DIR}/lib/cmake/vsg \
+-      -Dassimp_DIR:PATH=${VSG_INSTALL_DIR}/lib/cmake/assimp-5.2
++      -Dvsg_DIR:PATH=${VSG_INSTALL_DIR}/${LIBDIR}/cmake/vsg \
++      -Dassimp_DIR:PATH=${VSG_INSTALL_DIR}/${LIBDIR}/cmake/assimp-5.2
+ 
+ echo -e "\n------------------------ Build and install vsgXchange\n"
+ cmake --build build_vsgXchange --config Release
+ cmake --install build_vsgXchange --config Release --prefix ${VSG_INSTALL_DIR}
+-if [ ${BUILDDEBUG} = ON ]
+-then
++if [ ${BUILDDEBUG} = ON ]; then
+     cmake --build build_vsgXchange --config Debug
+     cmake --install build_vsgXchange --config Debug --prefix ${VSG_INSTALL_DIR}
+ else
+@@ -160,20 +149,18 @@ else
+ fi
+ 
+ # --- vsgImGui -----------------------------------------------------------
+-
+ echo -e "\n------------------------ Configure vsgImGui\n"
+-rm -rf  build_vsgImGui
++rm -rf build_vsgImGui
+ cmake -G "${BUILDSYSTEM}" -B build_vsgImGui -S ${VSGIMGUI_SOURCE_DIR} \
+       -DBUILD_SHARED_LIBS:BOOL=${BUILDSHARED} \
+       -DCMAKE_DEBUG_POSTFIX=_d \
+       -DCMAKE_RELWITHDEBINFO_POSTFIX=_rd \
+-      -Dvsg_DIR:PATH=${VSG_INSTALL_DIR}/lib/cmake/vsg
++      -Dvsg_DIR:PATH=${VSG_INSTALL_DIR}/${LIBDIR}/cmake/vsg
+ 
+ echo -e "\n------------------------ Build and install vsgImGui\n"
+ cmake --build build_vsgImGui --config Release
+ cmake --install build_vsgImGui --config Release --prefix ${VSG_INSTALL_DIR}
+-if [ ${BUILDDEBUG} = ON ]
+-then
++if [ ${BUILDDEBUG} = ON ]; then
+     cmake --build build_vsgImGui --config Debug
+     cmake --install build_vsgImGui --config Debug --prefix ${VSG_INSTALL_DIR}
+ else
+@@ -181,37 +168,30 @@ else
+ fi
+ 
+ # --- vsgExamples --------------------------------------------------------
+-
+ echo -e "\n------------------------ Configure vsgExamples\n"
+-rm -rf  build_vsgExamples
++rm -rf build_vsgExamples
+ cmake -G "${BUILDSYSTEM}" -B build_vsgExamples -S ${VSGEXAMPLES_SOURCE_DIR} \
+-      -Dvsg_DIR:PATH=${VSG_INSTALL_DIR}/lib/cmake/vsg \
+-      -DvsgXchange_DIR:PATH=${VSG_INSTALL_DIR}/lib/cmake/vsgXchange \
+-      -DvsgImGui_DIR:PATH=${VSG_INSTALL_DIR}/lib/cmake/vsgImGui
++      -Dvsg_DIR:PATH=${VSG_INSTALL_DIR}/${LIBDIR}/cmake/vsg \
++      -DvsgXchange_DIR:PATH=${VSG_INSTALL_DIR}/${LIBDIR}/cmake/vsgXchange \
++      -DvsgImGui_DIR:PATH=${VSG_INSTALL_DIR}/${LIBDIR}/cmake/vsgImGui
+ 
+ echo -e "\n------------------------ Build and install vsgExamples\n"
+ cmake --build build_vsgExamples --config Release
+ cmake --install build_vsgExamples --config Release --prefix ${VSG_INSTALL_DIR}
+ 
+ # --- VSG_FILE_PATH ------------------------------------------------------
+-
+-if [ "${VSG_FILE_PATH}_" = "_" ]
+-then
+-    if [ $(basename $SHELL) = "zsh" ]
+-    then
+-        # zsh
+-        echo " Add VSG_FILE_PATH to .zprofile"
++if [ "${VSG_FILE_PATH}_" = "_" ]; then
++    if [ $(basename $SHELL) = "zsh" ]; then
++        echo "Add VSG_FILE_PATH to .zprofile"
+         export_line="export VSG_FILE_PATH=\"$VSG_INSTALL_DIR/share/vsgExamples\""
+         echo ${export_line}
+         echo ${export_line} >> ~/.zprofile
+-        if [ $(uname) = Darwin -a "${DYLIB_LIBRARY_PATH}_" = "_" ]
+-        then
+-            echo " Add DYLIB_LIBRARY_PATH to .zprofile"
+-            export_line="export DYLD_LIBRARY_PATH=\"$VSG_INSTALL_DIR/lib\""
++        if [ $(uname) = Darwin -a "${DYLIB_LIBRARY_PATH}_" = "_" ]; then
++            echo "Add DYLIB_LIBRARY_PATH to .zprofile"
++            export_line="export DYLD_LIBRARY_PATH=\"$VSG_INSTALL_DIR/${LIBDIR}\""
+             echo ${export_line} >> ~/.zprofile
+         fi
+     else
+-        # Default: bash
+         echo "Add VSG_FILE_PATH to .bashrc"
+         export_line="export VSG_FILE_PATH=\"$VSG_INSTALL_DIR/share/vsgExamples\""
+         echo ${export_line}
+@@ -221,3 +201,4 @@ else
+     echo "VSG_FILE_PATH already exists and is set to $VSG_FILE_PATH"
+     echo "Make sure it is set to $VSG_INSTALL_DIR/share/vsgExamples"
+ fi
++
+diff --git a/src/chrono_fsi/sph/ChFsiProblemSPH.h b/src/chrono_fsi/sph/ChFsiProblemSPH.h
+index 0c6ada925a..def61417c7 100644
+--- a/src/chrono_fsi/sph/ChFsiProblemSPH.h
++++ b/src/chrono_fsi/sph/ChFsiProblemSPH.h
+@@ -42,6 +42,18 @@ namespace sph {
+ /// Base class to set up a Chrono::FSI problem.
+ class CH_FSI_API ChFsiProblemSPH {
+   public:
++
++    /// Hash function for a 3D integer grid coordinate.
++    struct CoordHash {
++        std::size_t operator()(const ChVector3i& p) const {
++            size_t h1 = std::hash<int>()(p.x());
++            size_t h2 = std::hash<int>()(p.y());
++            size_t h3 = std::hash<int>()(p.z());
++            return (h1 ^ (h2 << 1)) ^ h3;
++        }
++    };
++    typedef std::unordered_set<ChVector3i, CoordHash> GridPoints;
++    
+     /// Enable verbose output during construction of ChFsiProblemSPH (default: false).
+     void SetVerbose(bool verbose);
+ 
+@@ -239,24 +251,22 @@ class CH_FSI_API ChFsiProblemSPH {
+     std::string GetPhysicsProblemString() const { return m_sysSPH.GetPhysicsProblemString(); }
+     std::string GetSphIntegrationSchemeString() const { return m_sysSPH.GetSphIntegrationSchemeString(); }
+ 
++    void SetSPHPoints(GridPoints sph, ChVector3d offset) {
++      m_sph = sph;
++      m_offset_sph = offset;
++    }
++
++    void SetBCEPoints(GridPoints bce, ChVector3d offset) {
++      m_bce = bce;
++      m_offset_bce = offset;
++    }
++
++
+   protected:
+     /// Create a ChFsiProblemSPH object.
+     /// No SPH parameters are set.
+     ChFsiProblemSPH(ChSystem& sys, double spacing);
+ 
+-    /// Hash function for a 3D integer grid coordinate.
+-    struct CoordHash {
+-        std::size_t operator()(const ChVector3i& p) const {
+-            size_t h1 = std::hash<int>()(p.x());
+-            size_t h2 = std::hash<int>()(p.y());
+-            size_t h3 = std::hash<int>()(p.z());
+-            return (h1 ^ (h2 << 1)) ^ h3;
+-        }
+-    };
+-
+-    /// Grid points with integer coordinates.
+-    typedef std::unordered_set<ChVector3i, CoordHash> GridPoints;
+-
+     virtual ChVector3i Snap2Grid(const ChVector3d& point) = 0;
+     virtual ChVector3d Grid2Point(const ChVector3i& p) = 0;
+ 
+@@ -529,3 +539,4 @@ class CH_FSI_API WaveTankParabolicBeach : public ChFsiProblemWavetank::Profile {
+ }  // namespace chrono
+ 
+ #endif
++
+diff --git a/src/chrono_fsi/sph/ChFsiSystemSPH.h b/src/chrono_fsi/sph/ChFsiSystemSPH.h
+index 2b6816b7a6..cd0de59a25 100644
+--- a/src/chrono_fsi/sph/ChFsiSystemSPH.h
++++ b/src/chrono_fsi/sph/ChFsiSystemSPH.h
+@@ -70,3 +70,4 @@ class CH_FSI_API ChFsiSystemSPH : public ChFsiSystem {
+ }  // end namespace chrono
+ 
+ #endif
++
+diff --git a/src/demos/fsi/CMakeLists.txt b/src/demos/fsi/CMakeLists.txt
+index 146b52b3d1..4d7f5a3791 100644
+--- a/src/demos/fsi/CMakeLists.txt
++++ b/src/demos/fsi/CMakeLists.txt
+@@ -10,7 +10,7 @@ set(DEMOS ${DEMOS}
+    demo_FSI_Kernels
+    demo_FSI_ObjectDrop
+    demo_FSI_CylindricalTank
+-   demo_FSI_WaveTank
++   #demo_FSI_WaveTank
+    demo_FSI_EmbeddedObject
+    demo_FSI_BaffleFlow
+    demo_FSI_CouetteFlow

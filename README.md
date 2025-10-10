@@ -30,7 +30,7 @@ The use case designed is to mount the telemetry through docker-compose in a volu
 # Manual install (no Docker)
 ## Chrono distribution
 
-Use this mirror that includes necessary patches not available upstream: https://github.jpl.nasa.gov/rsvp/chrono-wisc-mirror
+Use patch in `chrono.patch`
 
 Run `contrib/buildURDF.sh`, `contrib/buildVSG.sh` to install VSG, Parsers dependencies. These scripts were built for Ubuntu and modified & tested on Rocky, expect minor hitches (but be pleasantly surprised if there are no issues)
 
