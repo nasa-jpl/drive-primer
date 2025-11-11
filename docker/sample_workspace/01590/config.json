@@ -1,0 +1,69 @@
+{
+    "trials": [
+        {
+            "sim_input_dirs": "product.csv",
+            "control_input_dirs": "product.csv",
+            "incons": {
+                "t_init": 808085667.129226,
+                "t_fin": 69.0,
+                "z_off": 0.03
+            }
+        }
+    ],
+    "incon": {},
+    "soil": {
+        "spacing": 0.05,
+        "size": 10,
+        "bulk_density_range": [
+            1.2,
+            1.9
+        ],
+        "cohesion_range": [
+            0.5,
+            10.0
+        ],
+        "friction_range": [
+            0.3,
+            1.0
+        ],
+        "youngs_modulus_range": [
+            0.1,
+            300.0
+        ],
+        "poisson_ratio_range": [
+            0.2,
+            0.4
+        ]
+    },
+    "integrator": {
+        "step_size_mbd": 0.0008,
+        "step_size_cfd": 0.0008,
+        "integrator": "DEFAULT"
+    },
+    "optimizer": {
+        "n_trials": 50.0,
+        "method": "combined",
+        "pruner_warmup": 15
+    },
+    "downlink": {
+        "ht": [
+            "downlink/NRM_1584_0807551637M355RAS_N0774905VCE_15950_0A02LLJ01.ht"
+        ],
+        "mod": [
+            "downlink/F_LT_1584_XYM_SM2_RAS078_0000_AUTOGENJ01.mod",
+            "downlink/N_LT_1584_XYM_SM2_RAS078_0000_AUTOGENJ15.mod",
+            "downlink/O_AT_1584_ORR_S10TRAS078_0000_NES2222J01.mod",
+            "downlink/R_LT_1584_XYM_SM2_RAS078_0000_AUTOGENJ01.mod"
+        ]
+    },
+    "results": {
+        "trial_output_dir": "logs",
+        "storage": {
+            "type": "SQLITE",
+            "dir": "sqlite:///optuna_study.db"
+        }
+    },
+    "misc": {
+        "gpu_check": false
+    }
+}

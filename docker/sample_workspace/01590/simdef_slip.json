@@ -1,0 +1,16 @@
+{
+    "soil" : {
+        "bulk_density" : 2100,
+        "cohesion" : 500,
+        "friction" : 0.9,
+        "youngs_modulus" : 100000000.0,
+	"poisson_ratio" : 0.3,
+        "spacing" : 0.04,
+        "size": 12
+    },
+    "integrator" : {
+        "step_size_mbd": 3e-4,
+        "step_size_cfd": 3e-4,
+        "integrator": "DEFAULT"
+    }
+}
